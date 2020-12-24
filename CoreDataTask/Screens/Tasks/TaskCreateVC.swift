@@ -8,11 +8,24 @@
 import UIKit
 
 class TaskCreateVC: UIViewController {
-    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-
-    private let textView = UITextView()
+    var taskBehaviour: TaskBehaviour
+    var navTitle: TaskEnum = .create
+    internal let textView: UITextView = {
+        let tv = UITextView()
+        tv.font = .systemFont(ofSize: 20, weight: .light)
+        return tv
+    }()
+    init() {
+        self.taskBehaviour = CreateTask()
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     override func viewDidLoad() {
         super.viewDidLoad()
+        textView.delegate = self
         textView.backgroundColor = .tertiaryLabel;
         view.backgroundColor = .systemBackground
         textView.translatesAutoresizingMaskIntoConstraints = false
@@ -21,36 +34,40 @@ class TaskCreateVC: UIViewController {
             textView.topAnchor.constraint(equalTo: view.topAnchor),
             textView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             textView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            textView.heightAnchor.constraint(equalToConstant: 200),
+            textView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
         ].forEach({$0.isActive = true})
         
-        self.navigationItem.rightBarButtonItem = .init(title: "Dismiss", style: .done, target: self, action: #selector(dismisal))
-
+        self.navigationItem.rightBarButtonItem = .init(title: navTitle.rawValue, style: .plain, target: self, action: #selector(dismisal))
+        navigationItem.leftBarButtonItem = .init(title: "back", style: .plain, target: self, action: #selector(backButton))
+        
         // Do any additional setup after loading the view.
     }
     
     @objc func dismisal() {
-        // create an object save it and that's it
-        let newTask = Task(context: context)
-        newTask.taskTitle = textView.text
-        do {
-            try context.save()
-            print("new task is added")
-        } catch {
-            print("Couldn't save properly")
+        if textViewShouldEndEditing(textView) {
+            
+            taskBehaviour.createUpdataAPI(withTitle: textView.text) { possibleError -> void in
+                if let e = possibleError {
+                    print(e.localizedDescription)
+                    return
+                }
+                self.dismiss(animated: true)
+            }
         }
-        self.dismiss(animated: true , completion: nil)
+    }
+    @objc func backButton() {
+        self.dismiss(animated: true)
+    }
+}
+extension TaskCreateVC : UITextViewDelegate {
+    
+    
+    func textViewShouldEndEditing(_ textView: UITextView) -> Bool {
+        if textView.text != "" {
+            return true
+        }
+        return false
     }
     
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
-    }
-    */
-
 }
+

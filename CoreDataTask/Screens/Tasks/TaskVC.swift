@@ -7,18 +7,18 @@
 
 import UIKit
 import CoreData
-class TaskVC2: UITableViewController {
-    
+class TaskVc: UITableViewController {
     
     // MARK: Properties
     var tasks = [Task]()  // change it with RedBlack/LinkedList ds
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
-    
+    // MARK: Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupTableView()
     }
+    
     override func viewWillAppear(_ animated: Bool){
         super.viewWillAppear(animated)
         navigationController?.navigationBar.prefersLargeTitles = true
@@ -46,8 +46,20 @@ class TaskVC2: UITableViewController {
             print("Can't fetch from core data")
         }
     }
-
     
+    func deleteTask(at indexPath: IndexPath) -> void {
+        let row = indexPath.row
+        // get the specified object
+        let deletedTask = tasks[row]
+        context.delete(deletedTask)
+        do {
+            try context.save()
+        } catch {
+            print("Couldn't delete properly")
+        }
+        tasks.remove(at: row)
+        tableView.deleteRows(at: [indexPath], with: .fade)
+    }
     // MARK: - Table view data source
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of rows
@@ -55,33 +67,28 @@ class TaskVC2: UITableViewController {
         return tasks.count
     }
     
-    
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: TaskCell.cellId, for: indexPath) as! TaskCell
         let task = tasks[indexPath.row]
-        cell.backgroundColor = .clear
-        cell.task = task
+        cell.backgroundColor = .secondarySystemGroupedBackground
+//        cell.task = task
+        cell.textLabel?.text = task.taskTitle
+        cell.textLabel?.numberOfLines = 0
         
-        cell.accessoryBackground = task.isFavourite ? .systemYellow : .lightGray
-        cell.taskDelegate = self
+        cell.accessoryView?.tintColor = task.isFavourite ? .systemYellow : .lightGray
+        cell.delegate = self
         return cell
     }
-    
-    
     
     // Override to support editing the table view.
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
-            // Delete the row from the data source
-            tableView.deleteRows(at: [indexPath], with: .fade)
-        } else if editingStyle == .insert {
-            // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
+            deleteTask(at: indexPath)
         }
     }
 }
-
-extension TaskVC2: TaskCellDelegate {
-    
+// MARK: TaskCellDelegate
+extension TaskVc: TaskCellDelegate {
     func favouriteTapped(_ cell: UITableViewCell) {
         guard let indexPath = tableView.indexPath(for: cell) else { return }
         let taskSelected = tasks[indexPath.row]
@@ -94,4 +101,17 @@ extension TaskVC2: TaskCellDelegate {
             print("Couldn't save and favourite the task")
         }
     }
+    
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+//        let taskBehav = Update()  // we have two solutions
+        // either dependecy injection or StrategyPattren
+        let eachTask = tasks[indexPath.row]
+        let taskCreateVC = UINavigationController(rootViewController : TaskUpdateVC(task: eachTask))
+        taskCreateVC.modalTransitionStyle = .flipHorizontal
+        taskCreateVC.modalPresentationStyle = .fullScreen
+        
+        self.present(taskCreateVC, animated: true)
+    }
 }
+
+

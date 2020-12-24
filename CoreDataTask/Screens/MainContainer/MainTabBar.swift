@@ -17,8 +17,10 @@ class MainTabBar: UITabBarController {
         b.translatesAutoresizingMaskIntoConstraints = false
         b.setTitle("+", for: .normal)
         b.layer.cornerRadius = CGFloat(buttonSize / 2)
-        b.titleLabel?.font = .systemFont(ofSize: 20, weight: .medium)
-        b.backgroundColor = .green
+        b.titleLabel?.font = .systemFont(ofSize: 28, weight: .medium)
+        b.tintColor = .white
+        b.backgroundColor = .systemBlue
+        
         return b
     }()
     
@@ -29,9 +31,12 @@ class MainTabBar: UITabBarController {
         setupSubviews()
     }
     fileprivate func setupTabBar() {
+
         
-        let taskVC = generateNavController(vc: TaskVC(), navTitle: "Tasks", barTitle: "Tasks", withImage: nil)
-        let favouriteVC = generateNavController(vc: FavouriteVC(), navTitle: "Favourites", barTitle: "Favourites", withImage: nil)
+        let taskImage = UIImage(systemName: "list.bullet.rectangle")
+        let favImage = UIImage(systemName: "star.leadinghalf.fill")
+        let taskVC = generateNavController(vc: TaskVc(), navTitle: "Tasks", barTitle: "Tasks", withImage: taskImage)
+        let favouriteVC = generateNavController(vc: FavouriteVC(), navTitle: "Favourites", barTitle: "Favourites", withImage: favImage)
         viewControllers = [taskVC, favouriteVC]
         
     }
@@ -61,11 +66,30 @@ class MainTabBar: UITabBarController {
     }
     
     @objc func pushTaskCreate() {
+//        let taskBehav = Create()
         let taskCreateVC = UINavigationController(rootViewController: TaskCreateVC())
         taskCreateVC.modalTransitionStyle = .flipHorizontal
         taskCreateVC.modalPresentationStyle = .fullScreen
-        
         self.present(taskCreateVC, animated: true)
+    }
+    
+    override func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
+        if selectedIndex == 0 {
+            createTaskB.isHidden = true
+        } else {
+            createTaskB.isHidden = false
+        }
+        
+//            createTaskB.setTitle("&", for: .normal)
+//            DispatchQueue.main.asyncAfter(deadline: .now() + 0) {
+//                self.createTaskB.isHidden = false
+//            }
+//            // async code down it
+//        } else {
+//            createTaskB.setTitle("+", for: .normal)
+//            createTaskB.isHidden = false
+//        }
+        
     }
     
 }

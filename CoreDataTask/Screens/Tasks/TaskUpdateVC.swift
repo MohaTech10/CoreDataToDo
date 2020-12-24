@@ -7,23 +7,49 @@
 
 import UIKit
 
-class TaskUpdateVC: UIViewController {
-
+class TaskUpdateVC: TaskCreateVC {
+    
+    deinit {
+        print("DEinit")
+    }
+    var task: Task?
+    
+    init(task: Task) {
+        super.init()
+        taskBehaviour = UpdateTask()  // Strategy pattern
+        self.task = task
+        navTitle = .update
+        
+    }
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        // Do any additional setup after loading the view.
+        
+        textView.text = task?.taskTitle
     }
     
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
+    override func dismisal() {
+        if textViewShouldEndEditing(textView) {
+            taskBehaviour.createUpdataAPI(withTitle: self.textView.text, task: task) { e -> void in
+                if let e = e {
+                    print(e.localizedDescription)
+                    return
+                }
+                dismiss(animated: true)
+            }
+        } else {
+            print("You should change/update your task to commit changes")
+        }
     }
-    */
-
+    
+    override func textViewShouldEndEditing(_ textView: UITextView) -> Bool {
+        let trimmedText = textView.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedTitle = task?.taskTitle?.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmedText == trimmedTitle {
+            return false
+        }
+        return true
+    }
 }
